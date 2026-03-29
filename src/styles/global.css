@@ -49,7 +49,6 @@ body {
   font-size: 16px;
   color: var(--color-text);
   background-color: var(--color-bg);
-  background-image: url("../assets/lewade.jpg");
   min-height: 100vh;
   display: flex;
   flex-direction: column;
