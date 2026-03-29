@@ -1,49 +1,121 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import { getCollection } from "astro:content";
+import { Image } from "astro:assets";
+import lewadeImg from "../assets/lewade.jpg";
+
+const posts = (await getCollection("writing"))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3); // show only the 3 most recent
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  </head>
+  <body>
+    <Header />
+
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <h1>Welcome to Huoi's Website!</h1>
+        <Image
+          src={lewadeImg}
+          alt="Lewade background"
+          style="margin-bottom: var(--space-sm);"
+        />
+        <p class="tagline">
+          When I was a young boy, my father took me into the city to see a
+          marching band.
+        </p>
+      </section>
+
+      <!-- Recent writing -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Writing</h2>
+          <a href="/writing" class="section-link">all writings →</a>
+        </div>
+
+        <ul class="post-list">
+          {
+            posts.map((post) => (
+              <li class="post-list-item">
+                <span class="post-list-date">
+                  <FormattedDate date={post.data.pubDate} />
+                </span>
+                <a href={`/writing/${post.id}/`}>{post.data.title}</a>
+                <span class="post-list-arrow">→</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+
+    <Footer />
+  </body>
 </html>
+
+<style>
+  .hero {
+    padding-bottom: var(--space-md);
+    border-bottom: 2px inset var(--color-border-3d);
+    margin-bottom: var(--space-lg);
+  }
+
+  .hero h1 {
+    font-size: 32px;
+    margin-bottom: var(--space-sm);
+  }
+
+  .tagline {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 0;
+  }
+
+  .section {
+    margin-bottom: var(--space-xl);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--color-text);
+    margin: 0;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .section-link {
+    font-size: 14px;
+    color: var(--color-link);
+    text-decoration: underline;
+  }
+
+  .section-link:hover {
+    background-color: var(--color-link);
+    color: var(--color-surface);
+    text-decoration: none;
+  }
+
+  /* Projects grid overrides for homepage (wider than prose width) */
+  .projects-grid {
+    max-width: 100%;
+  }
+</style>

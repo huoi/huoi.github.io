@@ -1,0 +1,199 @@
+---
+title: "NOI 2026 Qualification Contest"
+description: "My writeup for solutions to problems from NOI 2026 qualification contest."
+pubDate: "2026-02-22"
+---
+
+import Spoiler from "../../components/Spoiler.astro";
+
+Yesterday, I participated in the NOI 2026 qualification contest and managed to qualify for my school team. I attained a score of 340, while having a faster submission time than one of my competitor, hence qualifying for the 5th position in my school. In my opinion, this was way too close and I could have done better during the contest.
+
+Anyways, here are my short writeups for each problems in the contest. I managed to solve problems 1 to 3 during the contest, and was immediately informed about the idea which led to the solution for problem 4. Problem 5 will hopefully be added at a later date (when I get better 🙏).
+
+## Problem 1: Area 2
+
+Given `n` pairs of stick, select 2 pairs of stick to create a rectangle such that the area of the rectangle is maximised. Note: `2 <= n <= 10`.
+
+<Spoiler hint="Solution">
+Since `n` is small, I didn't think much and just wrote an `O(n^2)` solution testing out all possible pairs of sticks.
+
+```cpp
+void solve() {
+    int n;
+    cin >> n;
+
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    int ans = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            ans = max(ans, a[i] * a[j]);
+        }
+    }
+    cout << ans;
+}
+```
+
+</Spoiler>
+
+## Problem 2: Hungry Cats
+
+There are `n` cats each with happiness level `h[i]`. At any point in time, a cat with a **strictly greater** happiness level than another cat will eat it, causing it to gain 1 happiness level. Determine whether it is possible for only 1 cat to be left after all the eating.
+
+<Spoiler hint="Solution">
+It is easy to see that the optimal strategy for eating is to go from lowest to highest happiness level. Hence, sort the happiness level. For every cat, check if it is possible to eat the cat right to the left of it. If it is not possible, then the answer is no. Note the special case for the first two cats in the sorted array.
+
+```cpp
+void solve() {
+    int n;
+    cin >> n;
+
+    vector<int> h(n);
+    for (int i = 0; i < n; i++) {
+        cin >> h[i];
+    }
+
+    sort(h.begin(), h.end());
+    if (h[1] == h[0]) {
+        cout << "NO";
+        return;
+    }
+
+    for (int i = 2; i < n; i++) {
+        if (h[i] <= h[i - 1] + 1) {
+            cout << "NO";
+            return;
+        }
+    }
+    cout << "YES";
+}
+```
+
+</Spoiler>
+
+## Problem 3: Airplane 2
+
+Given a grid with `h` rows and `w` columns and `k` passengers, each with a seating reference at column `c[i]`. Find the optimal seating arrangement such that **a passenger in an earlier row must not be seated in a later column**, which also maximises the **minimum Manhattan distance between all pairs of assigned seats**.
+
+<Spoiler hint="Solution">
+This can be solved with binary search. Let `x` be the minimum Manhattan distance we want to maintain. Then, it is easy to just greedily place passengers in ascending column preference order such that `x` is maintained. If the current passenger's row exceeds `h`, then `x` is not a valid answer, and we limit the binary search space leftward.
+
+```cpp
+void solve() {
+    int h, w, k;
+    cin >> h >> w >> k;
+
+    vector<int> c(k);
+    for (int i = 0; i < k; i++) {
+        cin >> c[i];
+    }
+
+    sort(c.begin(), c.end());
+    auto check = [&](int x) {
+        int pr = 1;
+        for (int i = 1; i < k; i++) {
+            int dx = c[i] - c[i - 1];
+            if (dx >= x) continue;
+            int dy = x - dx;
+            int r = pr + dy;
+            if (r > h) return false;
+            pr = r;
+        }
+        return true;
+    };
+
+    int l = 1, r = h + w - 2, ans = -1;
+    while (l <= r) {
+        int m = (l + r) / 2;
+        if (check(m)) {
+            ans = m;
+            l = m + 1;
+        } else {
+            r = m - 1;
+        }
+    }
+    cout << ans;
+}
+```
+
+</Spoiler>
+
+## Problem 4: Digits
+
+Given `n` queries, each consists an `m`-digit number. In one operation, you can choose a continuous range of digits `l <= i <= r` such that for every digit `v[i]`, `v[i] = (v[i] + a[i]) % k`, where `a` is a given array. The cost of this operation would be `c[l] + c[r]`, where `c` is another given array. Your task is to find the minimum cost for every query to transform the number to a given number `x`. Note that `1 <= m <= 5`.
+
+<Spoiler hint="Solution">
+The observation needed here is that this problem can be modelled into a graph problem, where each reachable number (and `x`) is a node and the edges are directed and weighted. Since `m` is small, the number of possible pairs of `l` and `r` are also small. Hence, we can brute force all possible pairs of `l` and `r` for every reachable numbers, and calculate the cost to reach that number. Note that this cost will have to be minus `a[i]` as we will run a Dijkstra from `x` to all the possible numbers it can reach.
+
+```cpp
+void solve() {
+    int n, m, k;
+    cin >> n >> m >> k;
+
+    vector<int> a(m);
+    for (int i = 0; i < m; i++) {
+        cin >> a[i];
+    }
+
+    vector<int> c(m);
+    for (int i = 0; i < m; i++) {
+        cin >> c[i];
+    }
+
+    string x;
+    cin >> x;
+
+    map<string, vector<pair<string, int>>> adj;
+
+    auto apply = [&](string num, int l, int r) {
+        string res;
+        for (int i = 0; i < m; i++) {
+            if (i < l || i > r) {
+                res += num[i];
+                continue;
+            }
+            int digit = num[i] - '0';
+            digit = (digit + k - a[i]) % k;
+            res += digit + '0';
+        }
+        return res;
+    };
+
+    map<string, int> d;
+    d[x] = 0;
+    set<pair<int, string>> q;
+    q.insert({0, x});
+
+    while (!q.empty()) {
+        string u = q.begin()->second;
+        q.erase(q.begin());
+        for (int l = 0; l < m; l++) {
+            for (int r = l; r < m; r++) {
+                string v = apply(u, l, r);
+                if (d.find(v) == d.end()) d[v] = INF;
+                int w = c[l] + c[r];
+                if (d[u] + w < d[v]) {
+                    q.erase({d[v], v});
+                    d[v] = d[u] + w;
+                    q.insert({d[v], v});
+                }
+            }
+        }
+    }
+
+    while (n--) {
+        string v;
+        cin >> v;
+        cout << (d.find(v) == d.end() ? -1 : d[v]) << "\n";
+    }
+}
+```
+
+</Spoiler>
+
+## Problem 5: Mushroom Ring
+
+TBA

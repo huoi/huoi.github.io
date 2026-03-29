@@ -1,0 +1,57 @@
+---
+const { hint = "Show spoiler" } = Astro.props;
+---
+
+<details class="spoiler">
+  <summary>{hint}</summary>
+  <div class="spoiler-content">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .spoiler {
+    border: 1px solid var(--color-border);
+    margin: var(--space-md) 0;
+  }
+
+  .spoiler summary {
+    color: var(--color-muted);
+    padding: 0.6rem 0.875rem;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.15s ease;
+  }
+
+  .spoiler summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .spoiler summary::before {
+    content: "+";
+    font-size: 1rem;
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+
+  .spoiler[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .spoiler[open] summary {
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .spoiler-content {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .spoiler-content > *:last-child {
+    margin-bottom: 0;
+  }
+</style>

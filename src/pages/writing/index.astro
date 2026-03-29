@@ -1,0 +1,112 @@
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import FormattedDate from "../../components/FormattedDate.astro";
+import { SITE_TITLE } from "../../consts";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("writing")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+// Group posts by year
+const postsByYear = posts.reduce(
+  (acc, post) => {
+    const year = new Date(post.data.pubDate).getFullYear();
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(post);
+    return acc;
+  },
+  {} as Record<number, typeof posts>,
+);
+
+const years = Object.keys(postsByYear)
+  .map(Number)
+  .sort((a, b) => b - a);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={`Writing · ${SITE_TITLE}`} description="All posts" />
+  </head>
+  <body>
+    <Header />
+
+    <main>
+      <h1 class="page-title">Writing</h1>
+
+      {
+        years.map((year) => (
+          <section class="year-group">
+            <span class="year-label">{year}</span>
+            <ul class="post-list">
+              {postsByYear[year].map((post) => (
+                <li class="post-list-item">
+                  <span class="post-list-date">
+                    <FormattedDate date={post.data.pubDate} />
+                  </span>
+                  <a href={`/writing/${post.id}/`}>{post.data.title}</a>
+                  <span class="post-list-arrow">→</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </main>
+
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .page-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--color-text);
+    margin-bottom: var(--space-md);
+    border-bottom: 2px inset var(--color-border-3d);
+  }
+
+  .year-group {
+    display: table;
+    width: 100%;
+    margin-bottom: var(--space-lg);
+  }
+
+  .year-label {
+    display: table-cell;
+    width: 60px;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--color-text);
+    vertical-align: top;
+    padding-top: 5px;
+  }
+
+  .post-list {
+    display: table-cell;
+    list-style: none;
+    padding: 0;
+  }
+
+  /* Mobile: stack year above list */
+  @media (max-width: 480px) {
+    .year-group {
+      display: block;
+    }
+
+    .year-label {
+      display: block;
+      width: 100%;
+      margin-bottom: 5px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .post-list {
+      display: block;
+    }
+  }
+</style>
